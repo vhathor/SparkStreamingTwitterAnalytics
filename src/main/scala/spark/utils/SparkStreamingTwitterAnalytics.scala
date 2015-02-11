@@ -1,25 +1,24 @@
 package spark.utils
 
+import org.apache.hadoop.fs._
+import org.apache.hadoop.conf._
+import org.apache.spark.sql.hive._
 
-
+import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql._
-import org.apache.spark.{ SparkContext, SparkConf }
+
 import org.apache.spark.sql._
 import org.apache.spark.sql
+import org.apache.spark.sql.SQLContext
+
 import org.apache.hadoop.fs._
 import org.apache.hadoop.conf._
 import org.apache.spark.sql.hive._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
-import org.apache.spark.streaming.twitter._
 
-import twitter4j.Status
-import twitter4j.Status
-import twitter4j.FilterQuery
+import twitter4j._
 
 // 
 //Vishal id: 166432707
@@ -53,52 +52,61 @@ object SparkStreamingTwitterAnalytics {
 
     val tweetStream = TwitterUtils.createStream(ssc, None, filters)
 
-    /*
-     * 
-     * // Not available in Spark 1.2 streaming library yet
-    val fq: FilterQuery =  new FilterQuery()
-    val followPs= Array{10671602L};    
-    fq.follow(followPs);
-    tweetStream.filter(fq)
-    
-    org.apache.spark.streaming.twitter.TwitterUtils.
-    */
-
     val tweetRecords = tweetStream.map(status =>
       {
 
-        var tweetRecord = status.getUser().getId().toString
+        def getValStr(x: Any): String = { if (x != null && !x.toString.isEmpty()) "|" + x.toString else "|" }
+      
+        var tweetRecord =
+          getValStr(status.getUser().getId()) +
+            getValStr(status.getUser().getScreenName()) +
+            getValStr(status.getUser().getFriendsCount()) +
+            getValStr(status.getUser().getFavouritesCount()) +
+            getValStr(status.getUser().getFollowersCount()) +
+            getValStr(status.getUser().getFriendsCount()) +
+            getValStr(status.getUser().getLang()) +
+            getValStr(status.getUser().getLocation()) +
+            getValStr(status.getUser().getName()) +
+            getValStr(status.getUser().getId()) +
+            getValStr(status.getId()) +
+            getValStr(status.getCreatedAt()) +
+            getValStr(status.getGeoLocation()) +
+            getValStr(status.getInReplyToUserId()) +
+            getValStr(status.getPlace()) +
+            getValStr(status.getRetweetCount()) +
+            getValStr(status.getRetweetedStatus()) +
+            getValStr(status.getSource()) +
+            getValStr(status.getInReplyToScreenName()) +
+            getValStr(status.getText())
 
-        //User Info
-        tweetRecord = "|" + tweetRecord + status.getUser().getScreenName()
-        tweetRecord = "|" + tweetRecord + status.getUser().getFriendsCount()
-        tweetRecord = "|" + tweetRecord + status.getUser().getFavouritesCount()
-        tweetRecord = "|" + tweetRecord + status.getUser().getFollowersCount()
-        tweetRecord = "|" + tweetRecord + status.getUser().getFriendsCount()
-        tweetRecord = "|" + tweetRecord + status.getUser().getLang()
-        tweetRecord = "|" + tweetRecord + status.getUser().getLocation()
-        tweetRecord = "|" + tweetRecord + status.getUser().getName()
-        tweetRecord = "|" + tweetRecord + status.getUser().getId()
-        tweetRecord = "|" + tweetRecord + status.getId()
-        tweetRecord = "|" + tweetRecord + status.getCreatedAt()
-        tweetRecord = "|" + tweetRecord + status.getGeoLocation()
-        tweetRecord = "|" + tweetRecord + status.getInReplyToUserId()
-        tweetRecord = "|" + tweetRecord + status.getPlace()
-        tweetRecord = "|" + tweetRecord + status.getRetweetCount()
-        tweetRecord = "|" + tweetRecord + status.getRetweetedStatus()
-        tweetRecord = "|" + tweetRecord + status.getSource()
-        tweetRecord = "|" + tweetRecord + status.getInReplyToScreenName()
-        tweetRecord = "|" + tweetRecord + status.getText()
-
+            /*
+             *  var tweetRecord =
+          getValStr(status.getUser().getId().toString) +
+            getValStr(status.getUser().getScreenName().toString) +
+            getValStr(status.getUser().getFriendsCount().toString) +
+            getValStr(status.getUser().getFavouritesCount().toString) +
+            getValStr(status.getUser().getFollowersCount().toString) +
+            getValStr(status.getUser().getFriendsCount().toString) +
+            getValStr(status.getUser().getLang().toString) +
+            getValStr(status.getUser().getLocation().toString) +
+            getValStr(status.getUser().getName().toString) +
+            getValStr(status.getUser().getId().toString) +
+            getValStr(status.getId().toString) +
+            getValStr(status.getCreatedAt().toString) +
+            getValStr(status.getGeoLocation().toString) +
+            getValStr(status.getInReplyToUserId().toString) +
+            getValStr(status.getPlace().toString) +
+            getValStr(status.getRetweetCount().toString) +
+            getValStr(status.getRetweetedStatus().toString) +
+            getValStr(status.getSource().toString) +
+            getValStr(status.getInReplyToScreenName().toString) +
+            getValStr(status.getText().toString)
+             */
         tweetRecord
+
       })
 
     tweetRecords.print
-
-    val saveLocaitonPrefix = "hdfs://quickstart.cloudera/user/cloudera/tweets/tweets"
-    val saveLocationSuffix = "data"
-
-    tweetRecords.saveAsTextFiles(saveLocaitonPrefix, saveLocationSuffix)
 
     ssc.start()
     ssc.awaitTermination()

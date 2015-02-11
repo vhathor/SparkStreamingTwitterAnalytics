@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>spark</groupId>
-	<artifactId>sgzip</artifactId>
+	<groupId>spark.utils</groupId>
+	<artifactId>SparkStreamingTwitterAnalytics</artifactId>
 	<version>1.0</version>
 	<inceptionYear>2015</inceptionYear>
 	<properties>
@@ -44,7 +44,7 @@
 			<scope>test</scope>
 		</dependency>
 
-
+		<!-- Spark dependencies STARTS -->
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
@@ -67,19 +67,40 @@
 
 		<dependency>
 			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-streaming-twitter_2.11</artifactId>
-			<version>1.2.0</version>
+			<artifactId>spark-streaming-twitter_2.10</artifactId>
+			<version>1.1.0</version>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-streaming_2.10</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+
+		<!-- Twitter dependencies STARTS -->
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-core</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-stream</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
+		<!-- Twitter dependencies ENDS -->
+
+
+		<!-- Spark dependencies ENDS -->
 	</dependencies>
 
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
 		<plugins>
-
-
-
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -93,7 +114,7 @@
 				</executions>
 				<configuration>
 					<killAfter>-1</killAfter>
-					<mainClass>com.sony.ps.App</mainClass>
+					<mainClass>cspark.utils.SparkStreamingTwitterAnalytics</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
