@@ -55,19 +55,51 @@ object SparkStreamingTwitterAnalytics {
     val tweetRecords = tweetStream.map(status =>
       {
 
-        def getValStr(x: Any): String = { if (x != null && !x.toString.isEmpty()) "|" + x.toString else "|" }
-      
+        def getValStr(x: Any): String = { if (x != null && !x.toString.isEmpty()) x.toString + "|" else "|" }
+
+        /* Hive table format
+         * 
+				create table tweeter_data
+				(
+				tweet_user_Id bigint
+				, tweet_user_ScreenName string
+				, tweet_user_FriendsCount int
+				, tweet_user_FavouritesCount int
+				, tweet_user_FollowersCount int
+				, tweet_user_Lang string
+				, tweet_user_Location string
+				, tweet_user_Name string
+				, tweet_Id bigint
+				, tweet_CreatedAt timestamp
+				, tweet_GeoLocation string
+				, tweet_InReplyToUserId bigint
+				, tweet_Place string
+				, tweet_RetweetCount int
+				, tweet_RetweetedStatus string
+				, tweet_Source string
+				, tweet_InReplyToScreenName string
+				, tweet_Text string
+				)
+				ROW FORMAT DELIMITED
+				FIELDS TERMINATED BY '|'
+				STORED AS TEXTFILE;
+				
+				
+				Sample data
+				
+				123456789|tweet_user_screenname|123|456|789|tweet_user_lang|tweet_user_location|tweet_user_name|34873648364|1985-09-25 17:45:30.005|tweet_geolocation|23423423|tweet_place|20|tweet_retweetedstatus|tweet_source|tweet_inreplytoscreenname|tweet_text
+				
+         * 
+         */
         var tweetRecord =
           getValStr(status.getUser().getId()) +
             getValStr(status.getUser().getScreenName()) +
             getValStr(status.getUser().getFriendsCount()) +
             getValStr(status.getUser().getFavouritesCount()) +
             getValStr(status.getUser().getFollowersCount()) +
-            getValStr(status.getUser().getFriendsCount()) +
             getValStr(status.getUser().getLang()) +
             getValStr(status.getUser().getLocation()) +
             getValStr(status.getUser().getName()) +
-            getValStr(status.getUser().getId()) +
             getValStr(status.getId()) +
             getValStr(status.getCreatedAt()) +
             getValStr(status.getGeoLocation()) +
@@ -79,34 +111,13 @@ object SparkStreamingTwitterAnalytics {
             getValStr(status.getInReplyToScreenName()) +
             getValStr(status.getText())
 
-            /*
-             *  var tweetRecord =
-          getValStr(status.getUser().getId().toString) +
-            getValStr(status.getUser().getScreenName().toString) +
-            getValStr(status.getUser().getFriendsCount().toString) +
-            getValStr(status.getUser().getFavouritesCount().toString) +
-            getValStr(status.getUser().getFollowersCount().toString) +
-            getValStr(status.getUser().getFriendsCount().toString) +
-            getValStr(status.getUser().getLang().toString) +
-            getValStr(status.getUser().getLocation().toString) +
-            getValStr(status.getUser().getName().toString) +
-            getValStr(status.getUser().getId().toString) +
-            getValStr(status.getId().toString) +
-            getValStr(status.getCreatedAt().toString) +
-            getValStr(status.getGeoLocation().toString) +
-            getValStr(status.getInReplyToUserId().toString) +
-            getValStr(status.getPlace().toString) +
-            getValStr(status.getRetweetCount().toString) +
-            getValStr(status.getRetweetedStatus().toString) +
-            getValStr(status.getSource().toString) +
-            getValStr(status.getInReplyToScreenName().toString) +
-            getValStr(status.getText().toString)
-             */
         tweetRecord
 
       })
 
     tweetRecords.print
+
+    tweetRecords.filter(t => (t.getLength() > 0)).saveAsTextFiles("/user/hive/warehouse/social.db/tweeter_data/tweets", "data")
 
     ssc.start()
     ssc.awaitTermination()
